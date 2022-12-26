@@ -1,0 +1,27 @@
+.game-page .board {
+    margin: auto;
+    width: 350px;
+}
+
+.game-page .board button {
+    height: 100px;
+    width: 30.47%;
+    margin: 0px;
+    padding: 0px;
+    float: left;
+    margin: 5px;
+    margin-bottom: 10px;
+    font-size: 3em;
+}
+
+.game-page .container {
+    height: 90vh;
+}
+
+.game-page .row {
+    height: 100%;
+}
+
+.game-page .col {
+    padding: 15px;
+}

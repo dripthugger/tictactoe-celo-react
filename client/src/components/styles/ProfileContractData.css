@@ -1,0 +1,13 @@
+.profile-contract-data .col.col-md-10 {
+    padding-top: 2em;
+}
+
+.profile-contract-data #deposit_contract_input {
+    width: 30%;
+    display: inline-block;
+}
+
+.profile-contract-data #deposit_contract {
+    margin-bottom: 3px;
+    margin-left: 2em;
+}
