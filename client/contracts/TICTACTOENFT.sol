@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import { ecrecover } from "https://github.com/OpenZeppelin/openzeppelin-solidity/library/ecrecover";
 
 /**
  * @title TICTACTOENFT
@@ -41,37 +42,20 @@ contract TICTACTOENFT is ERC721, ERC721URIStorage, Ownable {
         return false;
     }
 
-    function splitSignature(bytes memory sig)
-        private
-        pure
-        returns (
-            bytes32 r,
-            bytes32 s,
-            uint8 v
-        )
-    {
-        require(sig.length == 65, "invalid signature length");
+import { ecrecover } from "https://github.com/OpenZeppelin/openzeppelin-solidity/library/ecrecover";
 
-        assembly {
-            /*
-            First 32 bytes stores the length of the signature
+function splitSignature(bytes memory sig)
+    private
+    pure
+    returns (
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    )
+{
+    (r, s, v) = ecrecover.parseSignature(sig);
+}
 
-            add(sig, 32) = pointer of sig + 32
-            effectively, skips first 32 bytes of signature
-
-            mload(p) loads next 32 bytes starting at the memory address p into memory
-            */
-
-            // first 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-            // second 32 bytes
-            s := mload(add(sig, 64))
-            // final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
-
-        // implicitly return (r, s, v)
-    }
 
     /**
     * @dev NFTs can only be minted if to has 5 or 10 wins
@@ -82,25 +66,34 @@ contract TICTACTOENFT is ERC721, ERC721URIStorage, Ownable {
      * @param _s signature hash, needs to check if user allowed to mint an nft(if transaction was signed by owner)
      * @return uint256
      */
-    function safeMint(address to, uint256 wins_count, bytes32 _h, bytes memory _s) public returns (uint256) {
-        require(verify_signer(_h, _s), "You are not allowed to access this contract");
-        require(wins_count == 5 || wins_count == 10);
-        _tokenIds.increment();
 
-        string
-            memory uri = "ipfs://QmfY2vW1AoTJneDkRnqsGNmLgerj2koZRQcKfXVGCqtDcQ/";
 
-        uint256 newItemId = _tokenIds.current();
 
-        _mint(to, newItemId);
-        // There are only two nfts, so they all will be the same but unique because of different ids
-        _setTokenURI(
-            newItemId,
-            string(abi.encodePacked(uri, Strings.toString(wins_count)))
-        );
 
-        return newItemId;
-    }
+
+function safeMint(address to, uint256 wins_count, bytes32 _h, bytes memory _s) public returns (uint256) {
+    require(verify_signer(_h, _s), "You are not allowed to access this contract");
+    require(wins_count >= 5 && wins_count <= 10);  // Allow for any value between 5 and 10 inclusive
+    _tokenIds.increment();
+    require(ownerOf(to) == msg.sender, "Only the owner of the NFT can mint a new one");  // Verify ownership
+    _tokenIds.increment();
+
+    string
+        memory uri = "ipfs://QmfY2vW1AoTJneDkRnqsGNmLgerj2koZRQcKfXVGCqtDcQ/";
+
+    uint256 newItemId = _tokenIds.current();
+
+    _mint(to, newItemId);
+    // There are only two nfts, so they all will be the same but unique because of different ids
+    _setTokenURI(
+        newItemId,
+        string(abi.encodePacked(uri, Strings.toString(wins_count)))
+    );
+
+    return newItemId;
+}
+
+
 
     // The following functions are overrides required by Solidity.
 
