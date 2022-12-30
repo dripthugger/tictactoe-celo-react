@@ -120,16 +120,22 @@ We can watch reward(win) transaction on CELO explorer
 ![2](./github_assets/1.png)
 
 ## Profile Page
-```
-Player sees a contract's address and balance, also player can deposit CELO funds to the contract to help the project reward users
-```
+#
+Player sees a contract's address and balance, also player can deposit CELO funds to the contract to help the project to reward users
+#
 ![3](./github_assets/3.gif)
 
-```
-Players have an achievements for 5 wins and 10 wins.
-After every achievement, a player can mint an NFT.
-```
+#
+On the profile page user can see his games history, and filter for showing all games, won games and lost games.
+Also there is a leader board page, sort by the formula (wins - looses). First place on the leader board has gold background, second has a silver background color;
+#
 ![4](./github_assets/4.gif)
+
+#
+Player can mint two achievement NFT's. The first is for 5 wins, the second is for 10 wins.
+#
+![5](./github_assets/5.gif)
+
 
 # Usage
 1. Install the wallet, for example [Metamask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) from the google chrome store.

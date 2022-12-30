@@ -2,14 +2,12 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react
 import { useContractKit } from "@celo-tools/use-contractkit";
 import { getReward } from "../utils/transactions";
 import { formatNumber } from "../utils";
-import { writeUserWin } from "../utils/serverapi";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import { useSignature } from "../hooks";
 import Loader from "./ui/Loader";
 import "./styles/Game.css";
 
-
-const Game = ({ socket, TransactionsContract, updateBalance }) => {
+const Game = ({ address, socket, TransactionsContract, updateBalance }) => {
     const [loading, setLoading] = useState(true);
 
     // Cells instance, needs for calculating if user wins or loses
@@ -68,7 +66,7 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
         }
     }, [])
 
-    const rewardUser = useCallback(async () => {
+    const rewardUser = useCallback(async (opponent) => {
 
         // reward amount, 0.1 CELO
         let amount = formatNumber(parseFloat(0.1));
@@ -87,10 +85,7 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
                 rewarded.current = true;
                 setDisabled(true)
 
-                const receipt = await getReward(TransactionsContract, performActions, amount, history, signature);
-                
-                if(receipt)
-                    await writeUserWin(receipt.from, receipt.transactionHash)
+                await getReward(TransactionsContract, performActions, amount, history, symbol.current, opponent, signature);
 
                 // Update user's balance in the header
                 updateBalance();
@@ -101,7 +96,7 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
             }
         }
         // return;
-    }, [performActions, TransactionsContract, updateBalance])
+    }, [performActions, TransactionsContract, updateBalance, signature])
 
     useEffect(() => {
 
@@ -130,8 +125,8 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
                 } else {
                     setMessage("Game over. You won!")
 
-                    if(rewarded.current === false)
-                        rewardUser();
+                    if (rewarded.current === false)
+                        rewardUser(data.op_address);
 
                     return;
                 }
@@ -160,12 +155,17 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
 
         setLoading(false);
 
-    }, [myTurn, symbol, isGameOver, rewardUser]);
+    }, [myTurn, symbol, isGameOver, rewardUser, socket]);
 
     useLayoutEffect(() => {
         rewarded.current = false;
         socket.connect();
-    }, [socket])
+
+        socket.emit("connect.address", {
+            address: address
+        });
+
+    }, [socket, TransactionsContract, performActions, address])
 
     // Retrieves current board state
     function getBoardState() {
@@ -212,7 +212,8 @@ const Game = ({ socket, TransactionsContract, updateBalance }) => {
         // Emit the move to the server
         socket.emit("make.move", {
             symbol: symbol.current,
-            position: e.target.id
+            position: e.target.id,
+            address: address
         });
     }
 

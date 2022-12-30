@@ -3,20 +3,19 @@ import ProfileContractData from './blocks/ProfileContractData';
 import ProfileAchievements from './blocks/ProfileAchievements'
 import ProfileHistoryData from './blocks/ProfileHistoryData'
 
-const Profile = ({ socket, TransactionsContract, TictactoeContract, updateBalance }) => {
+const Profile = ({ address, hextoutf8, socket, TransactionsContract, TictactoeContract, updateBalance }) => {
 
     useLayoutEffect(() => {
         socket.disconnect();
-        console.log(socket)
     }, [socket])
     
     return (
         <>
             <ProfileContractData updateBalance={updateBalance} TransactionsContract={TransactionsContract} />
 
-            <ProfileAchievements TictactoeContract={TictactoeContract} />
+            <ProfileAchievements hextoutf8={hextoutf8} TictactoeContract={TictactoeContract} TransactionsContract={TransactionsContract}/>
 
-            <ProfileHistoryData TransactionsContract={TransactionsContract} />
+            <ProfileHistoryData hextoutf8={hextoutf8} address={address} TransactionsContract={TransactionsContract} />
         </>
     );
 }

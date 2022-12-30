@@ -56,8 +56,8 @@ const ProfileContractData = ({ TransactionsContract, updateBalance }) => {
             if (TransactionsContract) {
                 updateContractData();
             }
-        } catch (error) {
-            console.log({ error });
+        } catch (e) {
+            console.log({ e });
         }
     }, [TransactionsContract, updateContractData]);
 

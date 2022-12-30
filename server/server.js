@@ -14,8 +14,7 @@ const server = http.Server(app).listen(5000),
 // Currently it is local
 const allowed_domain = "http://localhost:3000";
 
-const path = './wins.json',
-  nft_path = './nft_minted.json';
+const nft_path = './nft_minted.json';
 
 // Ban all requests not from our frontend
 app.use(cors({
@@ -25,29 +24,12 @@ app.use(cors({
 }));
 
 
-// Ban requests from browser too
+//Ban requests from browser too
 app.use('/*', (req, res, next) => {
   if (req.get('origin') === allowed_domain)
     next();
   else
     res.sendStatus(404);
-});
-
-// Save hashes for winners to show them in profile page
-app.get('/save_tx', (req, res) => {
-  let wins_arr = JSON.parse(fs.readFileSync(path, 'utf8'));
-
-  if ([req.query.address] in wins_arr)
-    wins_arr[req.query.address].push(req.query.txhash);
-  else
-    wins_arr[req.query.address] = [req.query.txhash];
-
-  fs.writeFile(path, JSON.stringify(wins_arr, null, 2), (error) => {
-    if (error)
-      res.sendStatus(404);
-  });
-
-  res.sendStatus(200);
 });
 
 // Save ids for minter nfts by users
@@ -71,17 +53,6 @@ app.get('/save_mint', (req, res) => {
   res.sendStatus(200);
 });
 
-// Show wins hashes by user wallet address
-app.get('/winner_hashes', (req, res) => {
-
-  let wins_arr = JSON.parse(fs.readFileSync(path, 'utf8'));
-
-  if ([req.query.address] in wins_arr)
-    res.json({ result: JSON.stringify(wins_arr[req.query.address]) });
-  else
-    res.json({ result: [] });
-})
-
 // Show minter nfts ids
 app.get('/minted', (req, res) => {
   let minted = JSON.parse(fs.readFileSync(nft_path, 'utf8'));
@@ -96,6 +67,7 @@ app.get('/minted', (req, res) => {
 const addClient = socket => {
   current_player = socket.id
   clients[socket.id] = socket;
+
 };
 
 // Client disconnected
@@ -117,6 +89,10 @@ io.sockets.on("connection", socket => {
     data.id = id;
     socket.broadcast.emit("moving", data);
   });
+
+  socket.on("connect.address", function(data) {
+    players[socket.id]['address'] = data.address;
+  })
 
   socket.on("disconnect", () => {
 
@@ -140,7 +116,9 @@ function joinGame(socket) {
     symbol: "X",
 
     // The socket that is associated with this player
-    socket: socket
+    socket: socket,
+    
+    address: null
   };
 
   /* Every other player is marked as 'unmatched', which means
@@ -185,10 +163,17 @@ io.on("connection", function (socket) {
     
     if (!getOpponent(socket))
       return;
+    let op_id = players[socket.id]['opponent'];
 
-    socket.emit("move.made", data);
+    let address = players[op_id].address
+
+    let op_data = data;
+    op_data['op_address'] = address;
+
+    socket.emit("move.made", op_data);
     getOpponent(socket).emit("move.made", data);
   });
+
 
   // Emit an event to the opponent when the player leaves
   socket.on("disconnect", function () {
